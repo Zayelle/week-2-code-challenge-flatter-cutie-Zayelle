@@ -7,6 +7,46 @@ document.addEventListener("DOMContentLoaded", () => {
     const votesForm = document.getElementById("votes-form");
     const resetButton = document.getElementById("reset-btn");
 
+
+  // Fetch characters from the server
+  function fetchCharacters() {
+    fetch("http://localhost:3000/characters") // Replace with the actual endpoint
+      .then((response) => response.json()) // Convert response to JSON
+      .then((characters) => {
+        characters.forEach((char) => {
+          const span = document.createElement("span");
+          span.textContent = char.name; // Set name
+          span.style.cursor = "pointer"; // Make clickable
+          span.addEventListener("click", () => displayCharacter(char)); // Add click event
+          characterBar.appendChild(span); // Append to character bar
+        });
+      })
+      .catch((error) => console.error("Error fetching characters:", error));
+  }
+
+   // Fetch character details when clicked
+   function fetchCharacterDetails(characterId) {
+    fetch(`http://localhost:3000/characters/${characterId}`) // Fetch individual character
+      .then((response) => response.json())
+      .then((character) => {
+        nameDisplay.textContent = character.name;
+        imageDisplay.src = character.image;
+        imageDisplay.alt = character.name;
+        voteCount.textContent = character.votes;
+      })
+      .catch((error) => console.error("Error fetching character details:", error));
+  }
+
+  // Function to display character details
+  function displayCharacter(character) {
+    document.getElementById("name").textContent = character.name;
+    document.getElementById("image").src = character.image;
+    document.getElementById("vote-count").textContent = character.votes;
+  }
+
+  fetchCharacters(); // Call function to load characters from API
+});
+
   // Character Data
   const characters = [
     {
@@ -41,28 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   ];
 
-  let selectedCharacter = null;
-
-  // Populate Character Bar
-  function loadCharacters() {
-    characters.forEach((char) => {
-      const span = document.createElement("span");
-      span.textContent = char.name;
-      span.style.cursor = "pointer";
-      span.addEventListener("click", () => displayCharacter(char));
-      characterBar.appendChild(span);
-    });
-  }
-
-  // Display Selected Character
-  function displayCharacter(character) {
-    selectedCharacter = character;
-    nameDisplay.textContent = character.name;
-    imageDisplay.src = character.image;
-    imageDisplay.alt = character.name;
-    voteCount.textContent = character.votes;
-  }
-
   // Handle Vote Submission
   votesForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -91,4 +109,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize App
   loadCharacters();
-});
