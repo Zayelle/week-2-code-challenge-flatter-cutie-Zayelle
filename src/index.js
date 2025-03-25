@@ -65,8 +65,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const votesToAdd = parseInt(votesInput, 10);
 
         if (!isNaN(votesToAdd)) {
-            selectedCharacter.votes += votesToAdd;
-            characterVotes.textContent = selectedCharacter.votes;
+            const newVotesVotes = selectedCharacter.votes + votesToAdd;
+
+        // Send PATCH request to update in backend
+        fetch(`${baseURL}/characters/${selectedCharacter.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ votes: newVotesVotes })
+        })
+        .then((response) => response.json())
+        .then((updatedCharacter) => {
+            selectedCharacter = updatedCharacter;
+            characterVotes.textContent = updatedCharacter.votes;
+        })
+        .catch((error) => console.error("Error updating votes:", error));
         }
 
         voteForm.reset();
@@ -74,10 +86,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle reset votes button
     resetButton.addEventListener("click", () => {
-        if (selectedCharacter) {
+        if (selectedCharacter) return;
+
+        // Confirm reset
             selectedCharacter.votes = 0;
             characterVotes.textContent = 0;
-        }
+
+        // Send PATCH request to update in backend
+    fetch(`${baseURL}/characters/${selectedCharacter.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ votes: 0 })
+    })
+    .then(response => response.json())
+    .then(updatedCharacter => {
+        selectedCharacter = updatedCharacter.votes; // Update selected character
+        characterVotes.textContent = updatedCharacter.votes; // Update votes in DOM
+    })
+    .catch(error => console.error("Error resetting votes:", error));
+        
     });
 
     //Call the function INSIDE the event listener
