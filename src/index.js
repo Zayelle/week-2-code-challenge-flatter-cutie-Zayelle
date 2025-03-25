@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
             .then((data) =>{ 
                  console.log("Characters:", data); // Extract characters from data
                  characterBar.innerHTML = ""; // Clear previous entries to prevent duplicates
-                 displayCharacters(data); // Display characters in the DOM
                  data.forEach((char) => {
                     const span = document.createElement("span");
                     span.textContent = char.name; // Set name
@@ -37,15 +36,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to add new character to character bar
     function addCharacterToBar(character) {
+        if ([...characterBar.children].some(span => span.textContent === character.name)) return; // Prevent errors if element is missing
         const span = document.createElement("span");
         span.textContent = character.name; // Set name
         span.style.cursor = "pointer"; // Make clickable
         span.addEventListener("click", () => displayCharacter(character)); // Add click event
         characterBar.appendChild(span); // Append to character bar
     }       
-    
+
     // Function to display characters in the DOM
-    function displayCharacters(characters) {
+    function displayCharacter(characters) {
       const characterList = document.getElementById("character-list");
       if (!characterList) return; // Prevent errors if element is missing
       characterList.innerHTML = ""; // Clear previous entries to prevent duplicates
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         characterImage.src = character.image;
         characterImage.alt = character.name;
         characterVotes.textContent = character.votes || 0; // Display votes or 0 if none
-        console.log('Selected character:, ${character.name},Votes: ${character.votes || 0}');
+        console.log(`Selected character:, ${character.name}, Votes: ${character.votes || 0}`);
     }
 
     // Handle votes form submission
@@ -116,8 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
     })
       .then(response => response.json())
       .then(updatedCharacter => {
-        selectedCharacter = updatedCharacter; // Assign entire object, not just votes 
-        characterVotes.textContent = updatedCharacter.votes; // Update votes in DOM
+        selectedCharacter = updatedCharacter  || { ...selectedCharacter, votes: 0 }; // Fallback if response is missing data 
+        characterVotes.textContent = selectedCharacter.votes; // Update votes in DOM
     })
       .catch(error => console.error("Error resetting votes:", error));
         
@@ -135,10 +135,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const powerInput = document.getElementById("power-input").value.trim();
         const newCharacter = {
             name: nameInput,
             image: imageInput,
-            votes: 0
+            votes: 0,
+            power: powerInput || "Unknown" //Set a default or allow user input
         };
     // Send POST request to save new character in backend
         fetch(`${baseURL}/characters`, {
